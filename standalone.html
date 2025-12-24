@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vingt-Cinq</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+        }
+        body {
+            background-color: white;
+            color: black;
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+</head>
+<body>
+    <main class="min-h-screen flex flex-col items-center justify-center p-6 md:p-8">
+        <div class="w-full max-w-2xl flex flex-col items-center justify-center gap-8 md:gap-12">
+            <!-- Clock Display -->
+            <div class="w-full flex justify-center">
+                <div id="clock" class="text-xs md:text-sm text-gray-600 font-mono whitespace-pre-line text-center"></div>
+            </div>
+
+            <!-- Timer Display -->
+            <div class="w-full flex justify-center">
+                <div class="flex items-center justify-center">
+                    <div id="timer" class="text-8xl md:text-9xl font-mono font-light tracking-tight">25:00</div>
+                </div>
+            </div>
+
+            <!-- Session Tracker -->
+            <div class="w-full flex justify-center">
+                <div id="session" class="text-sm md:text-base text-gray-700 font-medium">Session 1</div>
+            </div>
+
+            <!-- Controls -->
+            <div class="w-full flex justify-center mt-4">
+                <div class="flex items-center justify-center gap-4 md:gap-6">
+                    <button id="resetBtn" class="px-4 py-2 text-sm md:text-base font-medium text-gray-700 hover:text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 rounded" aria-label="Reset timer">
+                        Reset
+                    </button>
+                    <button id="playPauseBtn" class="px-6 py-2 text-sm md:text-base font-medium text-gray-700 hover:text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 rounded" aria-label="Start timer">
+                        Play
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const INITIAL_TIME = 25 * 60; // 25 minutes in seconds
+        const STORAGE_KEY = 'vingtcinq-session-count';
+
+        let timeRemaining = INITIAL_TIME;
+        let isRunning = false;
+        let sessionCount = parseInt(localStorage.getItem(STORAGE_KEY) || '1', 10);
+        let intervalId = null;
+        let endTime = null;
+
+        const timerEl = document.getElementById('timer');
+        const clockEl = document.getElementById('clock');
+        const sessionEl = document.getElementById('session');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        function getCurrentDateTime() {
+            const now = new Date();
+            const utc1 = new Date(now.getTime() + (1 * 60 * 60 * 1000));
+            
+            const date = utc1.toLocaleDateString('en-US', {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+            });
+            
+            const time = utc1.toLocaleTimeString('en-US', {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+            });
+            
+            return `${date}\n${time}\nUTC+1`;
+        }
+
+        function updateTimer() {
+            timerEl.textContent = formatTime(timeRemaining);
+            const timeString = formatTime(timeRemaining);
+            document.title = `${timeString} - Vingt-Cinq`;
+        }
+
+        function updateClock() {
+            clockEl.textContent = getCurrentDateTime();
+        }
+
+        function updateSession() {
+            sessionEl.textContent = `Session ${sessionCount}`;
+        }
+
+        function start() {
+            if (timeRemaining <= 0) {
+                reset();
+                return;
+            }
+
+            isRunning = true;
+            endTime = Date.now() + timeRemaining * 1000;
+            playPauseBtn.textContent = 'Pause';
+            playPauseBtn.setAttribute('aria-label', 'Pause timer');
+
+            intervalId = setInterval(() => {
+                if (endTime) {
+                    const now = Date.now();
+                    const remaining = Math.max(0, Math.ceil((endTime - now) / 1000));
+                    timeRemaining = remaining;
+
+                    if (remaining <= 0) {
+                        timeRemaining = 0;
+                        isRunning = false;
+                        endTime = null;
+                        clearInterval(intervalId);
+                        intervalId = null;
+                        playPauseBtn.textContent = 'Play';
+                        playPauseBtn.setAttribute('aria-label', 'Start timer');
+                        
+                        sessionCount++;
+                        localStorage.setItem(STORAGE_KEY, sessionCount.toString());
+                        updateSession();
+                    }
+                    updateTimer();
+                }
+            }, 100);
+        }
+
+        function pause() {
+            isRunning = false;
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+            playPauseBtn.textContent = 'Play';
+            playPauseBtn.setAttribute('aria-label', 'Start timer');
+        }
+
+        function reset() {
+            isRunning = false;
+            timeRemaining = INITIAL_TIME;
+            endTime = null;
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+            playPauseBtn.textContent = 'Play';
+            playPauseBtn.setAttribute('aria-label', 'Start timer');
+            document.title = 'Vingt-Cinq';
+            updateTimer();
+        }
+
+        function toggle() {
+            if (isRunning) {
+                pause();
+            } else {
+                start();
+            }
+        }
+
+        // Handle page visibility changes
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && isRunning) {
+                pause();
+            }
+        });
+
+        // Event listeners
+        playPauseBtn.addEventListener('click', toggle);
+        resetBtn.addEventListener('click', reset);
+
+        // Initialize
+        updateTimer();
+        updateClock();
+        updateSession();
+
+        // Update clock every second
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>
+
