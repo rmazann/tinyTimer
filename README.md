@@ -1,4 +1,4 @@
-# Vingt-Cinq - Pomodoro Timer
+# Tiny Timer - Pomodoro Timer
 
 A minimalistic 25-minute Pomodoro timer web application, inspired by [vingtcinq.vercel.app](https://vingtcinq.vercel.app/).
 
@@ -128,7 +128,7 @@ The site will be available at `https://your-project.vercel.app`
 
 ### Browser Tab Title
 - Updates document title with remaining time
-- Shows format: "MM:SS - Vingt-Cinq"
+- Shows format: "MM:SS - Tiny Timer"
 
 ## Browser Support
 

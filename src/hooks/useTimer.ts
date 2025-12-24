@@ -42,7 +42,7 @@ export function useTimer(): UseTimerReturn {
   const endTimeRef = useRef<number | null>(null)
   const isRunningRef = useRef<boolean>(false)
   const pauseIntervalRef = useRef<NodeJS.Timeout | null>(null)
-  
+
   // Session tracking
   const [sessionData, setSessionData] = useState<SessionData>({
     activeTime: 0,
@@ -59,7 +59,7 @@ export function useTimer(): UseTimerReturn {
   useEffect(() => {
     isRunningRef.current = isRunning
   }, [isRunning])
-  
+
   // Update pause time in real-time when paused
   useEffect(() => {
     if (!isRunning && pauseStartTimeRef.current && hasStarted) {
@@ -81,7 +81,7 @@ export function useTimer(): UseTimerReturn {
           })
         }
       }, 1000)
-      
+
       return () => {
         if (pauseIntervalRef.current) {
           clearInterval(pauseIntervalRef.current)
@@ -102,7 +102,7 @@ export function useTimer(): UseTimerReturn {
       const minutes = Math.floor(timeRemaining / 60)
       const seconds = timeRemaining % 60
       const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-      document.title = `${timeString} - Vingt-Cinq`
+      document.title = `${timeString} - Tiny Timer`
     }
   }, [timeRemaining])
 
@@ -132,7 +132,7 @@ export function useTimer(): UseTimerReturn {
     const now = Date.now()
     const remaining = Math.max(0, Math.ceil((endTimeRef.current - now) / 1000))
     setTimeRemaining(remaining)
-    
+
     // Track active time
     if (lastActiveTimeUpdateRef.current) {
       const elapsed = (now - lastActiveTimeUpdateRef.current) / 1000
@@ -155,7 +155,7 @@ export function useTimer(): UseTimerReturn {
       isRunningRef.current = false
       endTimeRef.current = null
       lastActiveTimeUpdateRef.current = null
-      
+
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
         intervalRef.current = null
@@ -169,7 +169,7 @@ export function useTimer(): UseTimerReturn {
       // Use the pause logic to properly track time
       setIsRunning(false)
       isRunningRef.current = false
-      
+
       // Track the moment we paused
       if (lastActiveTimeUpdateRef.current) {
         const now = Date.now()
@@ -192,20 +192,20 @@ export function useTimer(): UseTimerReturn {
           return prev
         })
       }
-      
+
       pauseStartTimeRef.current = null // Don't start pause time tracking, we're completing the session
       pauseTimeAtPauseStartRef.current = 0
       if (pauseIntervalRef.current) {
         clearInterval(pauseIntervalRef.current)
         pauseIntervalRef.current = null
       }
-      
+
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
         intervalRef.current = null
       }
     }
-    
+
     // If session has started, complete it and start a new one
     if (hasStarted) {
       // Save completed session data before resetting using callback form to get current state
@@ -222,7 +222,7 @@ export function useTimer(): UseTimerReturn {
           totalTime: 0,
         }
       })
-      
+
       // Complete previous session (increment session count)
       setSessionCount((prev) => {
         const newCount = prev + 1
@@ -232,7 +232,7 @@ export function useTimer(): UseTimerReturn {
         return newCount
       })
     }
-    
+
     // Reset timer to initial state for new session
     setTimeRemaining(INITIAL_TIME)
     setIsRunning(false)
@@ -242,7 +242,7 @@ export function useTimer(): UseTimerReturn {
     pauseStartTimeRef.current = null
     lastActiveTimeUpdateRef.current = null
     pauseTimeAtPauseStartRef.current = 0
-    
+
     if (intervalRef.current) {
       clearInterval(intervalRef.current)
       intervalRef.current = null
@@ -272,7 +272,7 @@ export function useTimer(): UseTimerReturn {
     setTimeRemaining(INITIAL_TIME)
     endTimeRef.current = null
     setHasStarted(false)
-    
+
     // Reset session tracking
     setSessionData({
       activeTime: 0,
@@ -286,7 +286,7 @@ export function useTimer(): UseTimerReturn {
 
     // Reset document title
     if (typeof document !== 'undefined') {
-      document.title = 'Vingt-Cinq'
+      document.title = 'Tiny Timer'
     }
   }, [])
 
@@ -307,7 +307,7 @@ export function useTimer(): UseTimerReturn {
           totalTime: 0,
         }
       })
-      
+
       // Complete previous session (increment session count)
       setSessionCount((prev) => {
         const newCount = prev + 1
@@ -318,14 +318,14 @@ export function useTimer(): UseTimerReturn {
       })
       pauseStartTimeRef.current = null
       lastActiveTimeUpdateRef.current = null
-      
+
       // Reset to initial time - timer should become input again for new session
       setTimeRemaining(INITIAL_TIME)
       setIsRunning(false) // Don't start automatically
       isRunningRef.current = false
       setHasStarted(false) // Reset hasStarted so timer becomes input again
       endTimeRef.current = null
-      
+
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
         intervalRef.current = null
@@ -334,11 +334,11 @@ export function useTimer(): UseTimerReturn {
         clearInterval(pauseIntervalRef.current)
         pauseIntervalRef.current = null
       }
-      
+
       // Don't start the timer automatically - user needs to input time and press play again
       return
     }
-    
+
     // If timer is at 0 but hasn't started before, just reset
     if (timeRemaining <= 0) {
       reset()
@@ -364,7 +364,7 @@ export function useTimer(): UseTimerReturn {
     // Calculate when the timer should end (current time + remaining time)
     const now = Date.now()
     endTimeRef.current = now + timeRemaining * 1000
-    
+
     // Set lastActiveTimeUpdateRef to now, but don't count the elapsed time from pause until now
     // The active time was already finalized when pause was called
     lastActiveTimeUpdateRef.current = now
@@ -382,7 +382,7 @@ export function useTimer(): UseTimerReturn {
   const pause = useCallback(() => {
     setIsRunning(false)
     isRunningRef.current = false
-    
+
     // Track the moment we paused
     if (lastActiveTimeUpdateRef.current) {
       const now = Date.now()
@@ -406,9 +406,9 @@ export function useTimer(): UseTimerReturn {
         return prev
       })
     }
-    
+
     pauseStartTimeRef.current = Date.now()
-    
+
     if (intervalRef.current) {
       clearInterval(intervalRef.current)
       intervalRef.current = null
@@ -474,11 +474,11 @@ export function useTimer(): UseTimerReturn {
         totalTime: newTotalTime,
       }
     })
-    
+
     // Add extra time to current remaining time (works even when timer has started)
     setTimeRemaining((prev) => {
       const newTime = Math.max(0, prev + seconds)
-      
+
       // If timer is running, update endTimeRef to extend the timer without starting a new session
       if (isRunning && endTimeRef.current) {
         // Extend the end time by the added seconds
@@ -488,7 +488,7 @@ export function useTimer(): UseTimerReturn {
         // just update the time without changing session count
         // endTimeRef stays null until start() is called again
       }
-      
+
       return newTime
     })
   }, [isRunning, hasStarted])

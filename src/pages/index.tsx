@@ -410,7 +410,7 @@ export default IndexPage
 
 export const Head: React.FC = () => (
   <>
-    <title>Vingt-Cinq</title>
+    <title>Tiny Timer</title>
     <meta name="description" content="A minimalistic 25-minute Pomodoro timer" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vingt-Cinq</title>
+    <title>Tiny Timer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         * {
@@ -101,7 +101,7 @@
         function updateTimer() {
             timerEl.textContent = formatTime(timeRemaining);
             const timeString = formatTime(timeRemaining);
-            document.title = `${timeString} - Vingt-Cinq`;
+            document.title = `${timeString} - Tiny Timer`;
         }
 
         function updateClock() {
@@ -167,7 +167,7 @@
             }
             playPauseBtn.textContent = 'Play';
             playPauseBtn.setAttribute('aria-label', 'Start timer');
-            document.title = 'Vingt-Cinq';
+            document.title = 'Tiny Timer';
             updateTimer();
         }
 

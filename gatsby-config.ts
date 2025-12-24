@@ -2,7 +2,7 @@ import type { GatsbyConfig } from "gatsby"
 
 const config: GatsbyConfig = {
   siteMetadata: {
-    title: `Vingt-Cinq`,
+    title: `Tiny Timer`,
     description: `A minimalistic 25-minute Pomodoro timer`,
     author: ``,
   },

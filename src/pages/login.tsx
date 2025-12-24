@@ -289,8 +289,8 @@ export default LoginPage
 
 export const Head: React.FC = () => (
     <>
-        <title>Login | Vingt-Cinq</title>
-        <meta name="description" content="Login to Vingt-Cinq Pomodoro Timer" />
+        <title>Login | Tiny Timer</title>
+        <meta name="description" content="Login to Tiny Timer Pomodoro Timer" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#000000" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />

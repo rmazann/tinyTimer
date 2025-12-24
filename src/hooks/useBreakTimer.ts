@@ -41,10 +41,10 @@ export function useBreakTimer(): UseBreakTimerReturn {
       const seconds = timeRemaining % 60
       const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
       const breakLabel = breakType === 'short' ? 'Short Break' : 'Long Break'
-      document.title = `${timeString} - ${breakLabel} - Vingt-Cinq`
+      document.title = `${timeString} - ${breakLabel} - Tiny Timer`
     } else if (typeof document !== 'undefined' && hasStarted && breakType && !isRunning) {
       const breakLabel = breakType === 'short' ? 'Short Break' : 'Long Break'
-      document.title = `${breakLabel} - Vingt-Cinq`
+      document.title = `${breakLabel} - Tiny Timer`
     }
   }, [timeRemaining, hasStarted, breakType, isRunning])
 
@@ -60,7 +60,7 @@ export function useBreakTimer(): UseBreakTimerReturn {
       isRunningRef.current = false
       setIsCompleted(true)
       endTimeRef.current = null
-      
+
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
         intervalRef.current = null
@@ -70,7 +70,7 @@ export function useBreakTimer(): UseBreakTimerReturn {
 
   const startBreak = useCallback((type: 'short' | 'long') => {
     const duration = type === 'short' ? SHORT_BREAK_DURATION : LONG_BREAK_DURATION
-    
+
     setBreakType(type)
     setTimeRemaining(duration)
     setIsRunning(false)
@@ -89,7 +89,7 @@ export function useBreakTimer(): UseBreakTimerReturn {
   const pause = useCallback(() => {
     setIsRunning(false)
     isRunningRef.current = false
-    
+
     if (intervalRef.current) {
       clearInterval(intervalRef.current)
       intervalRef.current = null
@@ -131,7 +131,7 @@ export function useBreakTimer(): UseBreakTimerReturn {
     }
 
     if (typeof document !== 'undefined') {
-      document.title = 'Vingt-Cinq'
+      document.title = 'Tiny Timer'
     }
   }, [])
 
