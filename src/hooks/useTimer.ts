@@ -50,10 +50,16 @@ export function useTimer(): UseTimerReturn {
     extraTime: 0,
     totalTime: 0,
   })
+  const sessionDataRef = useRef<SessionData>(sessionData) // Ref to track current sessionData
   const [lastCompletedSession, setLastCompletedSession] = useState<{ sessionNumber: number; sessionData: SessionData } | null>(null)
   const pauseStartTimeRef = useRef<number | null>(null)
   const pauseTimeAtPauseStartRef = useRef<number>(0) // Store pause time when pause started
   const lastActiveTimeUpdateRef = useRef<number | null>(null)
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    sessionDataRef.current = sessionData
+  }, [sessionData])
 
   // Sync ref with state
   useEffect(() => {
@@ -208,22 +214,24 @@ export function useTimer(): UseTimerReturn {
 
     // If session has started, complete it and start a new one
     if (hasStarted) {
-      // Capture current session number before any state updates
+      // Capture current session number and data before any state updates
       const completedSessionNumber = sessionCount
+      const completedSessionData = { ...sessionDataRef.current }
 
-      // Save completed session data before resetting using callback form to get current state
-      setSessionData((prevSessionData) => {
-        setLastCompletedSession({
-          sessionNumber: completedSessionNumber,
-          sessionData: { ...prevSessionData },
-        })
-        // Reset session tracking for new session
-        return {
-          activeTime: 0,
-          pauseTime: 0,
-          extraTime: 0,
-          totalTime: 0,
-        }
+      console.log('startNewSession - Completing session:', completedSessionNumber, 'with data:', completedSessionData)
+
+      // Save completed session first
+      setLastCompletedSession({
+        sessionNumber: completedSessionNumber,
+        sessionData: completedSessionData,
+      })
+
+      // Reset session tracking for new session
+      setSessionData({
+        activeTime: 0,
+        pauseTime: 0,
+        extraTime: 0,
+        totalTime: 0,
       })
 
       // Complete previous session (increment session count)
@@ -296,22 +304,24 @@ export function useTimer(): UseTimerReturn {
   const start = useCallback(() => {
     // If timer is at 0 and has been started before, complete previous session and start new one
     if (timeRemaining <= 0 && hasStarted) {
-      // Capture current session number before any state updates
+      // Capture current session number and data before any state updates
       const completedSessionNumber = sessionCount
+      const completedSessionData = { ...sessionDataRef.current }
 
-      // Save completed session data before resetting using callback form to get current state
-      setSessionData((prevSessionData) => {
-        setLastCompletedSession({
-          sessionNumber: completedSessionNumber,
-          sessionData: { ...prevSessionData },
-        })
-        // Reset session tracking for new session
-        return {
-          activeTime: 0,
-          pauseTime: 0,
-          extraTime: 0,
-          totalTime: 0,
-        }
+      console.log('Completing session:', completedSessionNumber, 'with data:', completedSessionData)
+
+      // Save completed session first
+      setLastCompletedSession({
+        sessionNumber: completedSessionNumber,
+        sessionData: completedSessionData,
+      })
+
+      // Reset session tracking for new session
+      setSessionData({
+        activeTime: 0,
+        pauseTime: 0,
+        extraTime: 0,
+        totalTime: 0,
       })
 
       // Complete previous session (increment session count)
