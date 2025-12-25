@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react'
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { navigate } from 'gatsby'
 import { useTimer, SessionData } from '../hooks/useTimer'
 import { useDarkMode } from '../hooks/useDarkMode'
@@ -45,11 +45,34 @@ const IndexPage: React.FC = () => {
   const [showSessionsPanel, setShowSessionsPanel] = useState(false)
   const [isClosingSessionsPanel, setIsClosingSessionsPanel] = useState(false)
   const [showBreakSuggestion, setShowBreakSuggestion] = useState(false)
-  const [completedSessions, setCompletedSessions] = useState<CompletedSession[]>([])
   const [sessionNames, setSessionNames] = useState<Record<number, string>>({})
   const lastProcessedCompletedSessionRef = useRef<number | null>(null)
   const hasPlayedSoundRef = useRef<boolean>(false)
   const hasShownBreakSuggestionRef = useRef<boolean>(false)
+
+  // Convert Supabase sessions to CompletedSession format
+  const allCompletedSessions = useMemo((): CompletedSession[] => {
+    return supabaseSessions.map(session => ({
+      sessionNumber: session.session_number,
+      sessionData: {
+        activeTime: session.active_time,
+        pauseTime: session.pause_time,
+        extraTime: session.extra_time,
+        totalTime: session.total_time,
+      }
+    })).sort((a, b) => a.sessionNumber - b.sessionNumber)
+  }, [supabaseSessions])
+
+  // Build session names from Supabase sessions
+  useEffect(() => {
+    const names: Record<number, string> = {}
+    supabaseSessions.forEach(session => {
+      if (session.session_name) {
+        names[session.session_number] = session.session_name
+      }
+    })
+    setSessionNames(prev => ({ ...names, ...prev }))
+  }, [supabaseSessions])
 
   // Auth check - redirect to login if not authenticated
   useEffect(() => {
@@ -61,11 +84,9 @@ const IndexPage: React.FC = () => {
   // Track when a new completed session is available from useTimer and save to Supabase
   useEffect(() => {
     if (lastCompletedSession && lastCompletedSession.sessionNumber !== lastProcessedCompletedSessionRef.current) {
-      // Add to completed sessions list (local state for UI)
-      setCompletedSessions((prev) => [...prev, lastCompletedSession as CompletedSession])
       lastProcessedCompletedSessionRef.current = lastCompletedSession.sessionNumber
 
-      // Save to Supabase
+      // Save to Supabase (it will appear in allCompletedSessions via real-time subscription)
       if (user) {
         const sessionToSave = {
           session_number: lastCompletedSession.sessionNumber,
@@ -392,7 +413,7 @@ const IndexPage: React.FC = () => {
           isRunning={isRunning}
           hasStarted={hasStarted}
           isCompleted={isCompleted}
-          completedSessions={completedSessions}
+          completedSessions={allCompletedSessions}
           sessionNames={sessionNames}
           onSessionNameChange={handleSessionNameChange}
           onHide={handleSessionsPanelHide}
