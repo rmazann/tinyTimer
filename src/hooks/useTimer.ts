@@ -208,10 +208,13 @@ export function useTimer(): UseTimerReturn {
 
     // If session has started, complete it and start a new one
     if (hasStarted) {
+      // Capture current session number before any state updates
+      const completedSessionNumber = sessionCount
+
       // Save completed session data before resetting using callback form to get current state
       setSessionData((prevSessionData) => {
         setLastCompletedSession({
-          sessionNumber: sessionCount,
+          sessionNumber: completedSessionNumber,
           sessionData: { ...prevSessionData },
         })
         // Reset session tracking for new session
@@ -293,10 +296,13 @@ export function useTimer(): UseTimerReturn {
   const start = useCallback(() => {
     // If timer is at 0 and has been started before, complete previous session and start new one
     if (timeRemaining <= 0 && hasStarted) {
+      // Capture current session number before any state updates
+      const completedSessionNumber = sessionCount
+
       // Save completed session data before resetting using callback form to get current state
       setSessionData((prevSessionData) => {
         setLastCompletedSession({
-          sessionNumber: sessionCount,
+          sessionNumber: completedSessionNumber,
           sessionData: { ...prevSessionData },
         })
         // Reset session tracking for new session

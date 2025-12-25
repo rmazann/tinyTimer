@@ -131,6 +131,16 @@ export function useSessions(user: User | null): UseSessions {
                     return null
                 }
 
+                // Immediately update state with the new session (don't wait for real-time subscription)
+                if (data) {
+                    setSessions((prev) => {
+                        // Check if session already exists (avoid duplicates from real-time subscription)
+                        const exists = prev.some((s) => s.id === data.id)
+                        if (exists) return prev
+                        return [data, ...prev]
+                    })
+                }
+
                 return data
             } catch (err) {
                 console.error('Error saving session:', err)
