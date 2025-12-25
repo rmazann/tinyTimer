@@ -302,6 +302,7 @@ export function useTimer(): UseTimerReturn {
   }, [])
 
   const start = useCallback(() => {
+    console.log('start() called - timeRemaining:', timeRemaining, 'hasStarted:', hasStarted)
     // If timer is at 0 and has been started before, complete previous session and start new one
     if (timeRemaining <= 0 && hasStarted) {
       // Capture current session number and data before any state updates

@@ -27,7 +27,7 @@ const IndexPage: React.FC = () => {
   const { timeRemaining, isRunning, hasStarted, sessionCount, sessionData, lastCompletedSession, start, pause, reset, setTimeRemaining, addExtraTime, startNewSession } = useTimer()
   const { isDark, toggleDarkMode } = useDarkMode()
   const { isAuthenticated, isLoading: authLoading, email, logout, user } = useAuth()
-  const { sessions: supabaseSessions, saveSession, updateSessionName, isLoading: sessionsLoading, getNextSessionNumber } = useSessions(user)
+  const { sessions: supabaseSessions, saveSession, updateSessionName, isLoading: sessionsLoading, getNextSessionNumber, refreshSessions } = useSessions(user)
   const {
     timeRemaining: breakTimeRemaining,
     isRunning: isBreakRunning,
@@ -50,9 +50,10 @@ const IndexPage: React.FC = () => {
   const hasPlayedSoundRef = useRef<boolean>(false)
   const hasShownBreakSuggestionRef = useRef<boolean>(false)
 
-  // Convert Supabase sessions to CompletedSession format
+  // Convert Supabase sessions to CompletedSession format with optimistic update
   const allCompletedSessions = useMemo((): CompletedSession[] => {
-    return supabaseSessions.map(session => ({
+    // Start with sessions already saved in Supabase
+    const saved = supabaseSessions.map(session => ({
       sessionNumber: session.session_number,
       sessionData: {
         activeTime: session.active_time,
@@ -60,8 +61,20 @@ const IndexPage: React.FC = () => {
         extraTime: session.extra_time,
         totalTime: session.total_time,
       }
-    })).sort((a, b) => a.sessionNumber - b.sessionNumber)
-  }, [supabaseSessions])
+    }));
+
+    // Optimistically add the last completed session if it's not in the saved list yet
+    // This bridges the "sync gap" between completion and database update
+    if (lastCompletedSession) {
+      const exists = saved.some(s => s.sessionNumber === lastCompletedSession.sessionNumber);
+      if (!exists) {
+        console.log('Optimistically adding last completed session to list:', lastCompletedSession.sessionNumber);
+        saved.push(lastCompletedSession);
+      }
+    }
+
+    return saved.sort((a, b) => a.sessionNumber - b.sessionNumber)
+  }, [supabaseSessions, lastCompletedSession])
 
   // Build session names from Supabase sessions
   useEffect(() => {
@@ -99,12 +112,22 @@ const IndexPage: React.FC = () => {
           total_time: Math.round(lastCompletedSession.sessionData.totalTime),
         }
         console.log('Calling saveSession with:', sessionToSave)
-        saveSession(sessionToSave).then((result) => {
-          console.log('saveSession result:', result)
-        })
+
+          // Use async IIFE to properly await the save operation
+          ; (async () => {
+            const result = await saveSession(sessionToSave)
+            console.log('saveSession result:', result)
+
+            // If saveSession didn't update the state (result is null or real-time failed),
+            // force a refresh to ensure the session appears
+            if (!result) {
+              console.log('saveSession returned null, refreshing sessions...')
+              await refreshSessions()
+            }
+          })()
       }
     }
-  }, [lastCompletedSession, user, saveSession, sessionNames])
+  }, [lastCompletedSession, user, saveSession, sessionNames, refreshSessions])
 
   // Play sound when timer completes
   useEffect(() => {

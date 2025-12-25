@@ -81,7 +81,15 @@ export function useSessions(user: User | null): UseSessions {
                 },
                 (payload) => {
                     if (payload.eventType === 'INSERT') {
-                        setSessions((prev) => [payload.new as Session, ...prev])
+                        const newSession = payload.new as Session
+                        setSessions((prev) => {
+                            // Check if session already exists (avoid duplicates)
+                            const exists = prev.some((s) => s.id === newSession.id)
+                            if (exists) {
+                                return prev
+                            }
+                            return [newSession, ...prev]
+                        })
                     } else if (payload.eventType === 'UPDATE') {
                         setSessions((prev) =>
                             prev.map((s) => (s.id === (payload.new as Session).id ? (payload.new as Session) : s))
