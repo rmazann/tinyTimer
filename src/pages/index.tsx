@@ -83,7 +83,9 @@ const IndexPage: React.FC = () => {
 
   // Track when a new completed session is available from useTimer and save to Supabase
   useEffect(() => {
+    console.log('useEffect triggered - lastCompletedSession:', lastCompletedSession, 'lastProcessedRef:', lastProcessedCompletedSessionRef.current)
     if (lastCompletedSession && lastCompletedSession.sessionNumber !== lastProcessedCompletedSessionRef.current) {
+      console.log('Saving session:', lastCompletedSession.sessionNumber)
       lastProcessedCompletedSessionRef.current = lastCompletedSession.sessionNumber
 
       // Save to Supabase (it will appear in allCompletedSessions via real-time subscription)
@@ -96,7 +98,10 @@ const IndexPage: React.FC = () => {
           extra_time: Math.round(lastCompletedSession.sessionData.extraTime),
           total_time: Math.round(lastCompletedSession.sessionData.totalTime),
         }
-        saveSession(sessionToSave)
+        console.log('Calling saveSession with:', sessionToSave)
+        saveSession(sessionToSave).then((result) => {
+          console.log('saveSession result:', result)
+        })
       }
     }
   }, [lastCompletedSession, user, saveSession, sessionNames])

@@ -101,6 +101,7 @@ export function useSessions(user: User | null): UseSessions {
     // Save a new session
     const saveSession = useCallback(
         async (sessionData: Omit<SessionInsert, 'user_id'>): Promise<Session | null> => {
+            console.log('saveSession called with:', sessionData)
             if (!user) {
                 setError('User not authenticated')
                 return null
@@ -125,6 +126,8 @@ export function useSessions(user: User | null): UseSessions {
                     .select()
                     .single()
 
+                console.log('Supabase insert result - data:', data, 'error:', insertError)
+
                 if (insertError) {
                     console.error('Error saving session:', insertError)
                     setError(insertError.message)
@@ -133,10 +136,16 @@ export function useSessions(user: User | null): UseSessions {
 
                 // Immediately update state with the new session (don't wait for real-time subscription)
                 if (data) {
+                    console.log('Updating sessions state with new data:', data)
                     setSessions((prev) => {
+                        console.log('Current sessions before update:', prev.length)
                         // Check if session already exists (avoid duplicates from real-time subscription)
                         const exists = prev.some((s) => s.id === data.id)
-                        if (exists) return prev
+                        if (exists) {
+                            console.log('Session already exists, not adding')
+                            return prev
+                        }
+                        console.log('Adding new session to state')
                         return [data, ...prev]
                     })
                 }
