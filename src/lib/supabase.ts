@@ -1,16 +1,28 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.GATSBY_SUPABASE_URL
 const supabaseAnonKey = process.env.GATSBY_SUPABASE_ANON_KEY
 
-if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn('Supabase URL or Anon Key is missing. Please check your environment variables.')
+// Lazy initialization to avoid build-time errors when env vars are missing
+let supabaseInstance: SupabaseClient | null = null
+
+const getSupabaseClient = (): SupabaseClient | null => {
+    if (supabaseInstance) return supabaseInstance
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+        console.warn('Supabase URL or Anon Key is missing. Please check your environment variables.')
+        return null
+    }
+
+    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey)
+    return supabaseInstance
 }
 
-export const supabase = createClient(
-    supabaseUrl || '',
-    supabaseAnonKey || ''
-)
+// For backward compatibility - will be null during SSR/build if env vars missing
+export const supabase = (typeof window !== 'undefined') ? getSupabaseClient() : null
+
+// Export getter for components that need to check availability
+export const getSupabase = getSupabaseClient
 
 // Type definitions for database
 export interface Database {

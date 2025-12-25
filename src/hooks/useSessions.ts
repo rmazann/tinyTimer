@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { supabase, Session, SessionInsert } from '../lib/supabase'
+import { getSupabase, Session, SessionInsert } from '../lib/supabase'
 import type { User } from '@supabase/supabase-js'
 
 interface UseSessions {
@@ -22,6 +22,12 @@ export function useSessions(user: User | null): UseSessions {
     const fetchSessions = useCallback(async () => {
         if (!user) {
             setSessions([])
+            setIsLoading(false)
+            return
+        }
+
+        const supabase = getSupabase()
+        if (!supabase) {
             setIsLoading(false)
             return
         }
@@ -60,6 +66,9 @@ export function useSessions(user: User | null): UseSessions {
     useEffect(() => {
         if (!user) return
 
+        const supabase = getSupabase()
+        if (!supabase) return
+
         const channel = supabase
             .channel('sessions-changes')
             .on(
@@ -94,6 +103,12 @@ export function useSessions(user: User | null): UseSessions {
         async (sessionData: Omit<SessionInsert, 'user_id'>): Promise<Session | null> => {
             if (!user) {
                 setError('User not authenticated')
+                return null
+            }
+
+            const supabase = getSupabase()
+            if (!supabase) {
+                setError('Database service unavailable')
                 return null
             }
 
@@ -134,6 +149,12 @@ export function useSessions(user: User | null): UseSessions {
                 return false
             }
 
+            const supabase = getSupabase()
+            if (!supabase) {
+                setError('Database service unavailable')
+                return false
+            }
+
             try {
                 setError(null)
 
@@ -164,6 +185,12 @@ export function useSessions(user: User | null): UseSessions {
         async (sessionId: string): Promise<boolean> => {
             if (!user) {
                 setError('User not authenticated')
+                return false
+            }
+
+            const supabase = getSupabase()
+            if (!supabase) {
+                setError('Database service unavailable')
                 return false
             }
 

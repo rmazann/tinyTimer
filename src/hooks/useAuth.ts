@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { supabase } from '../lib/supabase'
-import type { User, AuthError } from '@supabase/supabase-js'
+import { getSupabase } from '../lib/supabase'
+import type { User } from '@supabase/supabase-js'
 
 interface AuthState {
     isAuthenticated: boolean
@@ -24,6 +24,12 @@ export const useAuth = () => {
     useEffect(() => {
         // Get initial session
         const getInitialSession = async () => {
+            const supabase = getSupabase()
+            if (!supabase) {
+                setAuthState(prev => ({ ...prev, isLoading: false }))
+                return
+            }
+
             try {
                 const { data: { session } } = await supabase.auth.getSession()
 
@@ -46,6 +52,9 @@ export const useAuth = () => {
         getInitialSession()
 
         // Listen for auth state changes
+        const supabase = getSupabase()
+        if (!supabase) return
+
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             async (event, session) => {
                 if (session?.user) {
@@ -89,6 +98,12 @@ export const useAuth = () => {
             return false
         }
 
+        const supabase = getSupabase()
+        if (!supabase) {
+            setError('Authentication service unavailable')
+            return false
+        }
+
         try {
             const { error: otpError } = await supabase.auth.signInWithOtp({
                 email,
@@ -124,6 +139,12 @@ export const useAuth = () => {
             return false
         }
 
+        const supabase = getSupabase()
+        if (!supabase) {
+            setError('Authentication service unavailable')
+            return false
+        }
+
         try {
             const { error: verifyError } = await supabase.auth.verifyOtp({
                 email: pendingEmail,
@@ -150,6 +171,12 @@ export const useAuth = () => {
     const signInWithGoogle = useCallback(async (): Promise<boolean> => {
         setError(null)
 
+        const supabase = getSupabase()
+        if (!supabase) {
+            setError('Authentication service unavailable')
+            return false
+        }
+
         try {
             const { error: googleError } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
@@ -174,6 +201,9 @@ export const useAuth = () => {
 
     // Logout
     const logout = useCallback(async () => {
+        const supabase = getSupabase()
+        if (!supabase) return
+
         try {
             const { error: signOutError } = await supabase.auth.signOut()
 
